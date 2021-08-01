@@ -14,8 +14,11 @@ RUN set -ex && \
     go run build.go -no-upgrade build stdiscosrv
 
 FROM --platform=${TARGETPLATFORM} alpine:3.14.0
-
 COPY --from=builder /root/syncthing/stdiscosrv /bin/stdiscosrv
+
+ENV DEBUG                   false
+ENV SERVER_PORT             8443
+ENV REPLICATION_PORT        19200
 
 RUN apk add --no-cache ca-certificates su-exec
 
