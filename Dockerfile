@@ -1,5 +1,3 @@
-FROM alpine:3.14.0
-
 ########################################
 #              Settings                #
 ########################################
@@ -12,18 +10,22 @@ ENV REPLICATION_PORT        19200
 #               Build                  #
 ########################################
 
-ARG STDISCOSRV_VER=v1.8.0
-ARG PLATFORM=amd64
-ARG STDISCOSRV_URL=https://github.com/syncthing/discosrv/releases/download/${STDISCOSRV_VER}/stdiscosrv-linux-${PLATFORM}-${STDISCOSRV_VER}.tar.gz
+FROM --platform=${TARGETPLATFORM} golang:alpine as builder
+
+WORKDIR /root
 
 RUN set -ex && \
-    apk add --no-cache ca-certificates su-exec tar wget && \
-    mkdir -p /var/stdiscosrv && \
-    cd /tmp && \
-    wget ${STDISCOSRV_URL} && \
-    tar xzvf stdiscosrv-linux-${PLATFORM}-${STDISCOSRV_VER}.tar.gz && \
-    mv stdiscosrv-linux-${PLATFORM}-${STDISCOSRV_VER}/stdiscosrv /usr/bin/stdiscosrv && \
-    rm -rf /tmp/*
+    apk add --no-cache git && \
+    git clone https://github.com/syncthing/syncthing syncthing && \
+    cd ./syncthing && \
+    rm -f stdiscosrv && \
+    go run build.go -no-upgrade build stdiscosrv
+
+FROM --platform=${TARGETPLATFORM} alpine:3.14.0
+
+COPY --from=builder /root/syncthing/stdiscosrv /bin/stdiscosrv
+
+RUN apk add --no-cache ca-certificates su-exec
 
 VOLUME ["/var/stdiscosrv"]
 
@@ -37,7 +39,7 @@ ENTRYPOINT ["/bin/entrypoint.sh"]
 
 EXPOSE ${SERVER_PORT} ${REPLICATION_PORT}
 
-CMD /usr/bin/stdiscosrv \
+CMD /bin/stdiscosrv \
     -debug="${DEBUG}" \
     -listen=":${SERVER_PORT}" \
     -replication-listen=":${REPLICATION_PORT}" \
