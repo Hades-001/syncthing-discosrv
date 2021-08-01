@@ -11,6 +11,7 @@ ENV REPLICATION_PORT        19200
 ########################################
 
 FROM --platform=${TARGETPLATFORM} golang:alpine as builder
+ARG TAG
 
 WORKDIR /root
 
@@ -18,6 +19,8 @@ RUN set -ex && \
     apk add --no-cache git && \
     git clone https://github.com/syncthing/syncthing syncthing && \
     cd ./syncthing && \
+    git fetch --all --tags && \
+    git checkout tags/${TAG} && \
     rm -f stdiscosrv && \
     go run build.go -no-upgrade build stdiscosrv
 
