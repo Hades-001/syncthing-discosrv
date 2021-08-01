@@ -1,16 +1,5 @@
-########################################
-#              Settings                #
-########################################
-
-ENV DEBUG                   false
-ENV SERVER_PORT             8443
-ENV REPLICATION_PORT        19200
-
-########################################
-#               Build                  #
-########################################
-
 FROM --platform=${TARGETPLATFORM} golang:alpine as builder
+ENV CGO_ENABLED=0
 ARG TAG
 
 WORKDIR /root
