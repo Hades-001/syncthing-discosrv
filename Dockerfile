@@ -20,11 +20,15 @@ ENV DEBUG                   false
 ENV SERVER_PORT             8443
 ENV REPLICATION_PORT        19200
 
-RUN apk add --no-cache ca-certificates su-exec
+RUN apk add --no-cache ca-certificates su-exec tzdata
 
 VOLUME ["/var/stdiscosrv"]
 
 WORKDIR /var/stdiscosrv
+
+ENV TZ=Asia/Shanghai
+RUN cp /usr/share/zoneinfo/${TZ} /etc/localtime && \
+	echo "${TZ}" > /etc/timezone
 
 ENV PUID=1000 PGID=1000 HOME=/var/stdiscosrv
 
